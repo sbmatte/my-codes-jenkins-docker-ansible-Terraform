@@ -1,0 +1,65 @@
+pipeline{
+
+    agent {
+		
+		label "slave-1"
+	
+	}
+     
+	   stages{
+	   
+	       stage ("seq-1"){
+		       
+			   steps{ 
+			   sleep 10 
+			   }
+		    
+		   }
+	   
+		 stage("main"){
+					
+					parallel{
+					
+					    stage ("stage-1"){
+						
+						   steps{
+		   
+		                     sleep 10
+					
+						} 
+					  
+		   		    }	 
+					stage ("stage-2"){
+						
+						   steps{
+		   
+		                     sleep 10
+					
+						} 
+					  
+		   		    }	 
+					
+					stage ("stage-3"){
+						
+						   steps{
+		   
+		                     sleep 10
+					
+						} 
+					  
+		   		    }	
+					
+		   }
+		   
+		   stage ("seq-2"){
+		       
+			   steps{ 
+			   sleep 10
+			   }
+		    
+		   }
+		 	             		 
+		  }
+	   	          	   	   
+	   }
+}

@@ -1,0 +1,71 @@
+pipeline {
+
+     agent {
+	    label {
+		   label "built-in"
+		}
+	 
+	 }
+		  
+	 stages {
+	
+		stage ("custom-Workspace") {
+		
+		   agent {
+	
+		label {
+		
+				label "slave-1"
+				}
+			 }
+		
+			steps {
+			    dir ("/mnt/pipeline-1"){
+				sh 'mkdir P1'
+				}
+			}
+		
+		}
+		
+		stage ("custom-Workspace-1") {
+		
+		   agent {
+	
+		label {
+		
+				label "slave-1"
+				}
+			 }
+		
+			steps {
+				
+				dir ("/mnt/pipeline-2"){
+				sh 'mkdir P2'
+			    }
+			}
+		
+		}
+	
+	    stage ("custom-Workspace-4") {
+		
+		  agent {
+		     
+		    label {
+			  
+			  label "slave-2"
+			  customWorkspace "/mnt/data"
+			
+		    }
+		  		  
+		  }
+					
+			steps {
+			
+				sh "yum install httpd -y"						
+			}
+		
+		}
+	
+	}	  
+
+}

@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone') {
+            steps {
+                git branch: 'main', credentialsId: 'git', url: 'https://github.com/SumitMatte/todo-react-app.git'
+            }
+           
+        }
+        
+        stage("Build") {
+               steps {
+                   sh "npm install"
+                   sh "npm run build"
+               }
+        }
+     
+        stage("Send Build Artifact to EC2 Server") {
+            steps {
+                  sshPublisher(publishers: [sshPublisherDesc(configName: 'ubuntu', transfers: 
+                  [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'sudo service apache2 restart', 
+                  execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, 
+                  patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: 'build', 
+                  sourceFiles: 'build/**')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+            }
+            
+        }
+    }
+}--
+
+
+
+
+

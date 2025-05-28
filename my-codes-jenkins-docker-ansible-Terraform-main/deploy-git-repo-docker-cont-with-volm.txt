@@ -1,0 +1,73 @@
+pipeline {
+
+  agent{
+      label{
+	  
+	     label "built-in"  
+	  }
+  }
+   
+   stages {
+   
+   
+		stage ("create cont in slave-1"){
+	   
+			agent{
+			
+				label {label "slave-1"}
+			}
+             steps {
+			     		 				 
+				 			 				 			 
+				 sh "sudo yum install git -y"
+				 sh "sudo yum install docker -y"	 
+				 sh "sudo service docker start"
+				 
+				 sh "sudo docker volume create vol-1"
+				 sh "sudo docker volume create vol-2"
+				 sh "sudo docker volume create vol-3"
+				 
+				 sh "sudo docker pull httpd"
+				 				 			 
+				 sh "sudo docker run -itdp 8081:80 -v vol-1:/usr/local/apache2/htdocs --name server-1 httpd "
+				 sh "sudo docker run -itdp 8082:80 -v vol-2:/usr/local/apache2/htdocs --name server-2 httpd "
+				 sh "sudo docker run -itdp 8083:80 -v vol-3:/usr/local/apache2/htdocs --name server-3 httpd "
+				   
+			      dir("/mnt/v1"){   
+				 sh "git clone https://github.com/SumitMatte/my-db.git"
+				 }
+			     
+			 
+				 dir("/mnt/v1/my-db"){
+			     sh "sudo git branch"
+				 }
+				 
+				 dir("/mnt/v1/my-db"){
+			     sh "sudo git checkout 23Q1"
+				 sh "sudo cp /mnt/v1/my-db/index.html /var/lib/docker/volumes/vol-1"
+				 }
+				 
+				 sh "sudo docker cp /var/lib/docker/volumes/vol-1/index.html server-1:/usr/local/apache2/htdocs/"
+			      
+				  dir("/mnt/v1/my-db"){
+				 sh "sudo git checkout 23Q2"
+				 sh "sudo cp /mnt/v1/my-db/index.html /var/lib/docker/volumes/vol-2"
+				 }
+				 
+				 sh "sudo docker cp /var/lib/docker/volumes/vol-2/index.html server-2:/usr/local/apache2/htdocs/"
+				 
+				 dir("/mnt/v1/my-db"){
+				 sh "sudo git checkout 23Q3"
+				 sh "sudo cp /mnt/v1/my-db/index.html /var/lib/docker/volumes/vol-3"
+				 }
+				
+				 sh "sudo docker cp /var/lib/docker/volumes/vol-3/index.html server-3:/usr/local/apache2/htdocs/" 
+               				
+			 }
+   
+         }   
+   
+   
+  
+   }
+} 

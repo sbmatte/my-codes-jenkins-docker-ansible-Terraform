@@ -1,0 +1,52 @@
+pipeline {
+
+  agent{
+      label{
+	  
+	     label "built-in"  
+	  }
+  }
+   
+   stages {
+   
+         stage("Deploy-App-Tomcat-RDS"){
+		     
+			    agent{
+				   label{
+				     
+					 label "slave-1"
+				   }
+				}
+		 							
+			steps{
+			
+			    sh "sudo yum install maven -y"
+				sh "sudo yum install git -y"
+				
+			 dir ("/mnt/my-project") { 
+			     sh "git clone https://github.com/SumitMatte/project.git"
+			     }  
+			 
+			 dir ("/mnt/my-project/project"){sh "mvn clean install"}  
+
+            }
+        } 
+	    
+		stage("run playbook"){
+	 
+	      agent{
+           label{
+	  
+	         label "built-in"  
+	       }
+         }
+        steps{
+		  
+		  ansiblePlaybook credentialsId: 'ansible', disableHostKeyChecking: true, installation: 'ansible2', playbook: '/home/sumit/RDS-container.yml'
+		   
+		}
+  
+  
+	} 
+  } 
+} 

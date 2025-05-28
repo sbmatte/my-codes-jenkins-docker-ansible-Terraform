@@ -1,0 +1,48 @@
+pipeline {
+	
+	agent {
+	
+		label {
+		
+				label "slave-1"
+				customWorkspace "/mnt/pipeline-1"
+			  }
+		  }
+		  
+	 stages {
+	
+		stage ("custom-Workspace") {
+		
+			steps {
+			
+				sh 'mkdir P1'
+			
+			}
+		
+		}
+		
+		stage ("custom-Workspace-1") {
+		
+			steps {
+				
+				dir ("/mnt/pipeline-2"){
+				sh 'mkdir P2'
+			    }
+			}
+		
+		}
+		
+		stage ("custom-Workspace-3") {
+		
+			steps {
+				
+				dir ("/mnt/pipeline-3"){
+				sh 'mkdir P3'
+			    }
+			}
+		
+		}
+	
+	}	  
+
+}

@@ -1,0 +1,48 @@
+pipeline {
+
+  agent{
+      label{
+	  
+	     label "built-in"  
+	  }
+  }
+   
+   stages {
+   
+         stage("create cont in slave-1"){
+		 
+				agent{
+			
+				label {label "slave-1"}
+			}
+			
+			steps{
+			
+				   sh "sudo yum install docker -y"	 
+				   sh "sudo service docker start"
+                                   sh "sudo yum install git -y"	
+                                   sh "sudo yum install maven -y"				   
+
+				   dir("/mnt/my-proj"){
+				     sh "git clone https://github.com/SumitMatte/game-of-life.git"
+				     				   
+				   }
+				   dir("/mnt/my-proj/game-of-life"){
+				   sh "sudo mvn install"
+			   	    }
+				dir("/mnt/docker"){
+			   
+			       sh "sudo git clone https://github.com/SumitMatte/docker-File.git" 
+			   }
+				dir("/mnt/docker/docker-File"){
+				   sh "sudo cp /mnt/my-proj/game-of-life/gameoflife-web/target/gameoflife.war ."
+				   sh "sudo docker build -t tomcat:1.0 ."   
+				}
+				sh "sudo docker run -itdp 8081:8080 --name s1 tomcat:1.0"
+				
+				}
+	
+		 }
+   
+   }
+}  

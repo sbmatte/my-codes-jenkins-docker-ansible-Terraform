@@ -1,0 +1,21 @@
+output "pri-ip1" {
+
+     value = aws_instance.test1.private_ip
+
+}
+
+output "pub_ip1" {
+
+      value = aws_instance.test1.public_ip
+}
+
+output "pri-ip2" {
+
+     value = aws_instance.test2.private_ip
+
+}
+
+output "pub_ip2" {
+
+      value = aws_instance.test2.public_ip
+}

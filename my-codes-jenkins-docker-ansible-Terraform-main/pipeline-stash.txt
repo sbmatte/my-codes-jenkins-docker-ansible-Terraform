@@ -1,0 +1,82 @@
+pipeline {
+
+  agent{
+      label{
+	  
+	     label "built-in"  
+	  }
+  }
+   
+   stages {
+   
+     stage ("clone repo to master"){
+	 
+		steps {
+		  
+		  dir ("/mnt/my-project"){
+		  sh "git clone https://github.com/SumitMatte/game-of-life.git"
+		  stash 'my-stash'
+		  }
+		} 
+	 }
+	 
+	   stage ("build project in slave-1"){
+	   
+			agent{
+			
+				label {label "slave-1"}
+			}
+			steps {
+			   
+			  dir ("/mnt/servers"){ 
+			  sh "sudo yum install maven -y"
+			  }
+			  dir ("/mnt/my-project"){
+			  unstash 'my-stash'
+			  }
+			  dir ("/mnt/my-project/game-of-life"){
+			  sh "mvn install"
+			  stash 'my-stash'
+			  }
+			}
+	   }
+	 
+	   stage ("deploy project in slave-2"){
+	   
+			agent{
+			
+				label {label "slave-2"}
+			}
+			steps {
+			   
+			  dir ("/mnt/servers"){ 
+			  sh "sudo yum install maven -y"
+			  sh "wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.73/bin/apache-tomcat-9.0.73.zip"
+			  sh "unzip apache-tomcat-9.0.73.zip"
+			  sh "rm -rf apache-tomcat-9.0.73.zip"
+			  sh "cd"
+			  sh "chmod -R 777 /mnt/servers/apache-tomcat-9.0.73"
+			  sh "cd /mnt/servers/apache-tomcat-9.0.73/bin"
+			  
+			  }
+			  
+			  dir ("/mnt/my-project/game-of-life"){
+				 sh "cd /mnt/my-project"
+				 unstash 'my-stash'
+				 
+			        }
+					dir ("/mnt/servers/apache-tomcat-9.0.73/webapps"){
+			        sh "cd /mnt/servers/apache-tomcat-9.0.73/webapps"
+				    sh "cp /mnt/my-project/game-of-life/gameoflife-web/target/gameoflife.war ."
+					       
+				}
+
+               dir ("/mnt/servers/apache-tomcat-9.0.73/bin"){
+				       sh "./startup.sh"
+					}                     
+				 
+			} 
+	     }
+	 
+	 }
+   }   

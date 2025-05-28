@@ -1,0 +1,51 @@
+pipeline {
+
+  agent{
+      label{
+	  
+	     label "built-in"  
+	  }
+  }
+   
+   stages {
+   
+   
+		stage ("create cont in slave-1"){
+	   
+			agent{
+			
+				label {label "slave-1"}
+			}
+             steps {
+			     
+				 sh "sudo yum install git -y"
+				 sh "sudo yum install docker -y"
+				 sh "sudo service docker start"
+				 sh "sudo docker pull httpd"
+				 sh "sudo docker run -itdp 8080:80 --name server-1 httpd"
+				 sh "sudo docker run -itdp 8081:80 --name server-2 httpd"
+				 sh "sudo docker run -itdp 8082:80 --name server-3 httpd"
+				 
+			     dir("/mnt/proj"){
+				   
+				   sh "git clone https://github.com/SumitMatte/my-db.git"
+				   sh "cd /mnt/proj/my-db"
+			   }   
+			   
+			        sh "sudo git checkout 23Q1"
+				    sh "sudo docker cp /mnt/my-db/index.html server-1:/usr/local/apache2/htdocs/"
+			   
+				    sh "sudo git checkout 23Q2"
+				    sh "sudo docker cp /mnt/my-db/index.html server-2:/usr/local/apache2/htdocs/"
+				
+				    sh "sudo git checkout 23Q3"
+				    sh "sudo docker cp /mnt/my-db/index.html server-3:/usr/local/apache2/htdocs/" 
+               				
+			 }
+   
+         }   
+   
+   
+  
+   }
+} 

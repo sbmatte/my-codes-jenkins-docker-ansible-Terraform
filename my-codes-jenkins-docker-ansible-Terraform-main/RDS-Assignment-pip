@@ -1,0 +1,67 @@
+pipeline {
+
+  agent{
+      label{
+	  
+	     label "built-in"  
+	  }
+  }
+   
+   stages {
+   
+         stage("Deploy-App-Tomcat-RDS"){
+		     
+			    agent{
+				   label{
+				     
+					 label "slave-1"
+				   }
+				}
+		 							
+			steps{
+			
+			    sh "sudo yum install java-1.8.0-openjdk-devel.x86_64 -y"
+				sh "sudo yum install maven -y"
+				sh "sudo yum install git -y"
+				
+			  dir ("/mnt/servers"){
+				 sh "wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.73/bin/apache-tomcat-9.0.73.zip"
+				 sh "unzip apache-tomcat-9.0.73.zip"
+				 sh "rm -rf apache-tomcat-9.0.73.zip"
+				 sh "cd"
+				 sh "chmod -R 777 /mnt/servers/apache-tomcat-9.0.73"
+                 }				 
+              
+			   dir("/mnt/my-project/"){ sh "git clone https://github.com/SumitMatte/project.git"}
+			  
+			  dir("/mnt/my-project/project/"){ sh "mvn clean install"}
+			  
+			    										  
+              dir("/mnt/my-project/project/target"){
+			  
+			  sh "cp -r LoginWebApp /mnt/servers/apache-tomcat-9.0.73/webapps"
+			  }
+			  dir("/mnt/my-project/project"){
+			  sh "cp -r sedscript.sh /mnt/servers/apache-tomcat-9.0.73/webapps/LoginWebApp"
+			  }
+			  dir("/mnt/my-project/project/target/LoginWebApp"){
+			     sh "cp -r /mnt/my-project/project/sedscript.sh ."
+                 sh "chmod 777 sedscript.sh" 				 
+                 sh "./sedscript.sh"				 
+			  
+			    }
+				dir("/mnt/servers/apache-tomcat-9.0.73/webapps/LoginWebApp"){
+				 sh "chmod 777 sedscript.sh"
+			     sh "./sedscript.sh"  
+			  
+			    }
+			  	
+			  dir ("/mnt/servers/apache-tomcat-9.0.73/bin"){
+			     sh "./startup.sh"
+			  }
+
+
+       }
+     } 
+  } 
+} 

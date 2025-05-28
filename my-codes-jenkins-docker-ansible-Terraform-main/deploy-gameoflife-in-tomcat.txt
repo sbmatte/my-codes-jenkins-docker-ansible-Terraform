@@ -1,0 +1,50 @@
+#Target_Section
+
+- hosts: dev[0:1]
+  user: sumit
+  become: yes
+  connection: ssh
+  gather_facts: yes
+
+#Task_Section
+
+  tasks:
+    - name: install java
+      action: yum pkg=java state=present
+
+    - name: install tomcat-9
+      get_url: url=https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.73/bin/apache-tomcat-9.0.73.zip dest=/mnt
+
+
+
+    - name: unzip tomcat-9
+      ansible.builtin.unarchive:
+         src: /mnt/apache-tomcat-9.0.73.zip
+         dest: /mnt/
+         remote_src: yes
+
+    - name: remove-zip
+      file:
+        path: /mnt/apache-tomcat-9.0.73.zip
+        state: absent
+
+    - name: permission
+      command: chmod -R 777 /mnt
+
+    - name: copy war in tomcat
+      action: copy src=/mnt/my-project/game-of-life/gameoflife-web/target/gameoflife.war dest=/mnt/apache-tomcat-9.0.73/webapps
+
+
+
+    - name: Run Tomcat
+      shell: ./startup.sh
+      args:
+        chdir: /mnt/apache-tomcat-9.0.73/bin
+
+
+    - name: bin
+      command: cd /mnt/apache-tomcat-9.0.73/bin | ./startup.sh
+
+    - name: start tomcat
+      shell: nohup /mnt/apache-tomcat-9.0.73/bin/startup.sh
+

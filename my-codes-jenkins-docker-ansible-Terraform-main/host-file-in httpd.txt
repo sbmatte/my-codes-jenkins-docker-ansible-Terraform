@@ -1,0 +1,97 @@
+pipeline {
+	
+	agent {
+	
+		label {
+		
+				label "slave-1"
+				customWorkspace "/mnt/pipeline-1"
+			  }
+		  }
+		  
+	 stages {
+	
+		stage ("custom-Workspace") {
+		
+		   agent {
+	
+		label {
+		
+				label "slave-1"
+				}
+			 }
+		
+			steps {
+			
+				sh 'rm -f P1'
+				sh "sudo yum install git -y"
+			
+			}
+		
+		}
+		
+		stage ("custom-Workspace-1") {
+		
+		   agent {
+	
+		label {
+		
+				label "slave-1"
+				}
+			 }
+		
+			steps {
+				
+				dir ("/mnt"){
+				sh 'rm -f pipeline-2'
+			    }
+			}
+		
+		}
+		
+		stage ("custom-Workspace-3") {
+		
+		    agent {
+	
+		label {
+		
+				label "slave-1"
+				}
+			 }
+		
+			steps {
+				
+				dir ("/mnt"){
+				sh 'rm -f pipeline-3'
+			    }
+			}
+		
+		}
+	
+	    stage ("custom-Workspace-4") {
+		
+		  agent {
+		     
+		    label {
+			  
+			  label "slave-2"
+			  customWorkspace "/mnt/data"
+			
+		    }
+		  		  
+		  }
+					
+			steps {
+			
+				sh "sudo yum install httpd -y"
+				sh "sudo service httpd start"
+				sh "sudo chmod -R 777 /var/www/html"
+				sh 'echo "this is multi-node pipeline" >> /var/www/html/index.html'
+							
+			}
+		
+		}
+	
+	}	  
+
+}

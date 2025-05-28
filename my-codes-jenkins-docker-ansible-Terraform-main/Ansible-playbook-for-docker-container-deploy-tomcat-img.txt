@@ -1,0 +1,52 @@
+--- #my-1st-playbook ----
+#Target_Section
+
+- hosts: dev
+  user: sumit
+  become: yes
+  connection: ssh
+  gather_facts: yes
+
+#Task_Section
+
+  tasks:
+
+   - name: Install python pip
+     yum:
+        name: python2-pip
+        state: latest
+   - name: Install docker-py python module
+     pip:
+        name: docker-py
+        state: present
+
+
+   - name: install docker
+     action: yum pkg=docker state=present
+
+   - name: start docker
+     action: service name=docker state=started
+
+   - name: copy war at host
+     action: copy src=/mnt/my-project/game-of-life/gameoflife-web/target/gameoflife.war dest=/mnt/
+
+
+
+   - name: start container
+     docker_container:
+        name: tomcat
+        image: tomcat:9
+        state: started
+        recreate: yes
+        tty: true
+        detach: yes
+        ports:
+          - "8081:8080"
+
+   - name: permission
+     command: chmod -R 777 /mnt
+
+
+
+   - name: copy war
+     shell: docker cp /mnt/gameoflife.war tomcat:/usr/local/tomcat/webapps

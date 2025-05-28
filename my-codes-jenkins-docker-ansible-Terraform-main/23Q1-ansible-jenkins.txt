@@ -1,0 +1,65 @@
+#Target_Section
+
+- hosts: dev[0]
+  user: sumit
+  become: yes
+  connection: ssh
+  gather_facts: yes
+
+#Task_Section
+
+  vars:
+     n1: httpd
+     path: /var/www/html/
+
+  tasks:
+   - name: install httpd
+     action: yum pkg="{{n1}}" state=present
+
+   - name: start apache
+     action: service name="{{n1}}" state=started
+
+
+   - name: copy index
+     action: copy src=index.html dest="{{path}}"
+
+
+pipeline {
+
+  agent{
+      label{
+	  
+	     label "built-in"  
+	  }
+  }
+   
+   stages {
+   
+         stage("run playbook-1"){
+		    
+            steps {
+			  
+			 /* dir("/mnt/my-demo-db"){
+			     sh "sudo cp index.html /home/sumit/"
+			    } */
+			  		  		  
+			  dir("/home/sumit/"){
+			    
+			    ansiblePlaybook credentialsId: 'ansible', disableHostKeyChecking: true, installation: 'ansible2', playbook: '/home/sumit/test1.yml'
+			    
+			     }
+			  
+			/*  dir("/mnt/my-demo-db"){
+			     sh "sudo git checkout 23Q2"
+			     sh "sudo cp index.html /home/sumit/"
+			    }
+			  dir("/home/sumit/"){
+			     sh"sudo ansible-playbook test2.yml"
+			  } */
+			  
+			  
+			}			
+		 
+	 }	 
+  }		 
+}		 
