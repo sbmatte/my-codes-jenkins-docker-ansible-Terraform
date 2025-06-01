@@ -1,0 +1,129 @@
+
+---
+- name: Install Docker on AlmaLinux 8
+  hosts: dev
+  user: ansible
+  become: true
+  connection: ssh
+  gather_facts: true
+
+  tasks:
+  
+    - name: Install required dependencies
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Add Docker CE repository
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+
+    - name: Disable container-tools module
+      command: dnf -y module disable container-tools
+
+
+    - name: Clean DNF cache
+      command: dnf clean all
+
+    - name: Install Docker CE
+      yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: latest
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add current user to docker group (optional)
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      when: ansible_user != 'root'
+
+
+- name: Deploy Tomcat with WAR on Docker (AlmaLinux 8.10)
+  hosts: dev
+  user: ansible
+  become: yes
+  connection: ssh
+  gather_facts: yes
+
+  tasks:
+
+    - name: Install required system packages
+      yum:
+        name:
+          - python3
+          - python3-pip
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Ensure pip is upgraded
+      pip:
+        name: pip
+        executable: pip3
+        state: latest
+
+    - name: Remove legacy docker-py if present
+      pip:
+        name: docker-py
+        executable: pip3
+        state: absent
+
+    - name: Install required Python packages for Docker SDK
+      pip:
+        name:
+          - docker
+          - requests
+          - urllib3
+        executable: pip3
+        state: latest
+
+    - name: Ensure /mnt directory exists
+      file:
+        path: /mnt
+        state: directory
+        mode: '0777'
+
+    - name: Copy WAR file to host
+      copy:
+        src: /home/ansible/sample.war
+        dest: /mnt/
+      when: not ansible_check_mode
+
+    - name: Start Tomcat container
+      docker_container:
+        name: tomcat
+        image: tomcat:9
+        state: started
+        recreate: yes
+        tty: true
+        detach: yes
+        published_ports:
+          - "8081:8080"
+      environment:
+        DOCKER_HOST: unix:///var/run/docker.sock
+      when: not ansible_check_mode
+
+    - name: Set permissions on /mnt
+      file:
+        path: /mnt
+        mode: '0777'
+        recurse: yes
+
+    - name: Copy WAR into container
+      command: docker cp /mnt/sample.war tomcat:/usr/local/tomcat/webapps
+      when: not ansible_check_mode
+
